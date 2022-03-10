@@ -31,7 +31,7 @@ b8LMxw7e+vdIntBGqf7T25PLn/MycGPPvNXyIsTzvvY/MXXJHnAqpI5DlqwzbRHz
 q16/S1WLvzg4PsElmv1f
 -----END CERTIFICATE-----
 
-It gives us the raw data. I'm decided to see if I can view this data in a more easier way. With more of my vast linux knowledge and googling,
+It gives us the raw data. I decided to see if I can view this data in a more easier way. With more of my vast linux knowledge and googling,
 I typed this command: openssl x509 -text -in cert -noout
 Certificate:
     Data:
