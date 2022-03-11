@@ -1,0 +1,28 @@
+# CTF NAME – Web Gauntlet 3
+
+* **Category:** Web Exploitation
+* **Points:** 300
+
+## Challenge
+
+Last time, I promise! Only 25 characters this time. Log in as admin 
+Site: http://mercury.picoctf.net:24143/ 
+Filter: http://mercury.picoctf.net:24143/filter.php
+
+
+
+## Solution
+
+We could do what we did on the other sites. Since the site filters out the word admin. We could put into the username box: ad'||'min.
+What this || does is that it concatenates two strings so it combines 'ad' and 'min' to make admin and it would bypass the admin word filter.
+Next we need to find a way to also make the password field return true as we see that when we type in sql injection this is what the computer reads
+
+SELECT username, password FROM users WHERE username='something' AND password='something'
+
+So if we look at all the sql operators that isn't filtered. I see the thing 'IS NOT'. This could work in getting the password to return true
+So we could type in the password box: g' IS NOT 'o   
+This password field would return true. Thus getting both conditions met and granting us a login
+Username: ad'||'min
+Password: g' IS NOT 'o
+
+FLAG: picoCTF{k3ep_1t_sh0rt_fc8788aa1604881093434ba00ba5b9cd}
