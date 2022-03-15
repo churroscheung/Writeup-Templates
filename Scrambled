@@ -1,0 +1,122 @@
+# UTCTF – Scrambled
+
+* **Category:** Cryptography
+* **Points:** 937
+
+## Challenge
+
+I dropped my friend's keyboard and all the key caps fell off. I didn't want them to find out what happened, so I put the key caps 
+back on in random places... Good news: My friend only looks at the keyboard when they type, so they didn't notice that they were 
+typing absolute gibberish. Bad news: They were supposed to send me a flag, but instead I got... this... Can you help me figure out 
+it was supposed to be? By oops (@oops on discord)
+
+a[qjj7ahga2gc2jjg=qf/g.7xgm[qgpjo,g2fgog=q87f/tga=7vqm[2f,gpxff.g[o11qfq/gm[7x,[ahga2g1286q/gx1gv.g6q.n7ou/bgnxmgm[qg6q.=gcquqg2fgcq2u/g1jo8q=t3a2g/7f4mg6f7c
+gc[omg[o11qfq/bgnxmg2m4=g76o.g=2f8qga2g=mouqgomgm[qg6q.n7ou/gof.co.=galay33aoj=7ga24-qg[o/gog8ux=[g7fg.7xgp7ug.qou=bg/7g.7xgcofmgm7g,7g7xmgc2m[gvqa0rrrrrrrrr
+rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr3aof.co.=bg[quqg2=gm[qgpjo,gai[71qpxjj.ayalgxmpjo,aza=xna=m2amxama27afa58a2a1[aqua5a2a5[aoua/aj.
+a56af7aca5[aqua]3
+
+
+## Solution
+
+From the description it sounds like every key on the keyboard corresponds to a unique character.
+
+We could do a frequency analysis and then replace the most frequent letters with the most popular English characters, but there would be too much trial and 
+error involved. The problem could also intentionally have a ton of uncommon letters such as "z" to throw the reader off (like what they did with "r").
+
+Instead we can opt to search for a pattern of letters since in the cipher, every letter is guaranteed to have a unique button. Since the description states that 
+the message is about flags and most definitely contains the word flag, we can search for a pattern of letters that matches "flag". Other patterns such as "utflag{"
+would also suffice since the flags are in that format, but it's risky because in other challenges, the flag wasn't always wrapped in that text.
+
+For example, the set of encrypted letters "abcd" might correspond to the decrypted word "flag" since all the encrypted letters correspond to a single, unique 
+decrypted letter. On the other hand, "abbc" doesn't work since two identical encrypted characters guarantees two identical decrypted characters and the word 
+"flag" has four unique characters.
+
+We can even narrow it down to " flag " with spaces on each side since the message will probably have spaces to differentiate words. This means that we're 
+searching for a continuous set of characters that are identical at the start and end but have unique characters in the middle.
+
+ex: " flag " --> "abcdea"
+
+
+The next part can be done by hand but it's much more efficient and safer to do it through programming. It's a simple programming problem where you check each 
+substring of length 6 in the ciphertext and see if it matches the desired pattern, " flag ". 
+
+After this, you obtain multiple candidates. "-" means unknown while I went ahead and replaced the encrypted charcters with their potential decrypted 
+counterparts that create the pattern " flag " at some point.
+
+Cipher:     a[qjj7ahga2gc2jjg=qf/g.7xgm[qgpjo,g2fgog=q87f/tga=7vqm[2f,gpxff.g[o11qfq/gm[7x,[ahga2g1286q/gx1gv.g6q.n7ou/bgnxmgm[qg6q.=gcquqg2fgcq2u/g1jo8q=t3a2g/7f4mg6f7c ...
+Candidates: --l----- -- ---- flag --- --l ---- -a - fl--ag- -f--l---a- --aa- ----lalg -------- -- ----lg -- -- -l-----g- --- --l -l-f -l-l -a -l--g ----lf---- g-a-- -a-- ...
+            ---ll--- -- --ll ---- --- --- flag -- a ------- ---------g f---- -a------ ----g--- -- ------ -- -- -----a--- --- --- ---- ---- -- ----- -la------- ----- ---- ...
+            --------l--l----l-- -l--gl---la--fl- l-l---- --l-------- flag  -l----- --l---gf---l--l------lg-l--l---------l-g-l---l----l----l- l-----l----------l-- --l-    ...
+
+(not all are shown)
+
+There are several candidates but using a little common sense, we can eliminate many of them. The first example has a single character by itself surrounded by spaces and the 
+only possible single letter English word is "a" which makes this candidate extremely improbable. The second example doesn't seem to have any segments that could possibly not
+be words. Compared to the second example, the third example has much longer words(10+ characters) making it extremely unprobable that it is on the right track. Also in the 
+third example, the second word is filled with a combination of letters that can't possibly create an English word, crossing this candidate off for good.
+
+Another observation that can be made is that the only potential solutions with reasonable spacing are the ones which replace "g" with " ". By this reasoning, we can cross
+off any other solution that doesn't follow this rule.
+
+Repeat the above process several times and you'll end up with a single candidate left: 
+
+---ll--- -- --ll ---- --- --- flag -- a ------- ---------g f---- -a------ ----g--- -- ------ -- -- -----a--- --- --- ---- ---- -- ----- -la------- ----- ---- --a- -a------- ...
+
+From this point on it's guess and check. Like the previous process, we can do the decoding by hand, or we can use programming to speed up the process through a Hash Map that
+stores the corresponding decrypted character with the encrypted character as the key.
+
+First I assume that the three letter word in front of "flag" is "the" since it makes the most sense in context of an actual sentence:
+
+-hell--- -- --ll -e-- --- the flag -- a -e----- ----eth--g f---- ha--e-e- th--gh-- -- ----e- -- -- -e---a--- --t the -e-- -e-e -- -e--- -la-e----- ----t ---- -hat ha--e-e-- ...
+
+Sometimes it's hard to know whether a sequence of letters has multiple potential words or just one. In that case, use a word finder on the internet that lets you search by
+length and contents of that word. For example, "-hat" can't possibly be "that" since we've already designated the "t" character so the only common word that it could possibly
+be is "what". Here is the next result:
+
+-hell--- -- w-ll -e-- --- the flag -- a -e----- ----eth--g f---- ha--e-e- th--gh-- -- ----e- -- -- -e---a--- --t the -e-- we-e -- we--- -la-e----- ----t ---w what ha--e-e-- ...
+
+"we-e" turns into "were":
+
+-hell--- -- w-ll -e-- --- the flag -- a -e----- ----eth--g f---- ha--e-e- th--gh-- -- ----e- -- -- -e---ar-- --t the -e-- were -- we-r- -la-e----- ----t ---w what ha--e-e-- ...
+
+"ha--e-e-" turns into "happened" since the sequence appears twice and "happened" is a commonly used word. The encrypted characters also happen to be "11" where "pp" will go
+making it even more likely. Here is the next result:
+
+-hell--- -- w-ll -end --- the flag -n a -e--nd- ----eth-ng f-nn- happened th--gh-- -- p---ed -p -- -e---ard- --t the -e-- were -n we-rd pla-e----- d-n-t -n-w what happened- ...
+
+"-n" turns into "in" since it fits the context of the other words:
+
+-hell--- -i will -end --- the flag in a -e--nd- ----ething f-nn- happened th--gh-- -i pi--ed -p -- -e---ard- --t the -e-- were in weird pla-e----i d-n-t -n-w what happened- ...
+
+At this point, the words start to form themselves and it becomes easy to fill in the gaps now that you know you're on the right track.
+
+-hello-- -i will send you the flag in a second- -something funny happened though-- -i picked up my keyboard- but the keys were in weird places---i don't know what happened- ...
+
+We're close to being done but there are still a few gaps left. The character in front of a standalone "i" is always unknown but standalone "i" is usually printed as "I". 
+This is a combination of first the "shift key" and then a "i" which explains the empty character in front which is a "shift key". The rest of the empty characters are
+punctuation marks which add nothing to understanding the message so we can ignore them. There's also a whole string of characters that are still unknown, but this is just 
+the string of "r" which is meaningless and only messes with the frequency analysis.
+
+Near the end we get this:
+
+Before:  [quqg2=gm[qgpjo,gai[71qpxjj.ayalgxmpjo,aza=xna=m2amxama27afa58a2a1[aqua5a2a5[aoua/aj.a56af7aca5[aqua]3
+After:   here is the flag --hopefully---- utflag---sub-sti-tu-t-io-n--c-i-ph-er---i--h-ar-d-ly--k-no-w--h-er---
+
+This message looks like it had the flag wrapped which is lucky for us. All we have to do is find where the flag starts and ends.
+
+We can do a frequency analysis right now on the encrypted text and we find that "z" only appears once, and "]" also only appears once. This means that they are both probably 
+"{" and "}" respectively which wraps the flag neatly. This is the resulting message:
+
+here is the flag --hopefully---- utflag{-sub-sti-tu-t-io-n--c-i-ph-er---i--h-ar-d-ly--k-no-w--h-er}-
+
+There is also the small problem of "c" which only appears within the flag section of the cipher. Since they only appear exclusively in the flag, they're probably not letters of
+the alphabet and more likely symbols. Using previous knowledge of flags in this ctf and others, we can guesss that they are "_".
+
+We then end up with this after adding "_" and the capital letters:
+
+here is the flag --hopefully---- utflag{SubStiTuTIoN_cIPhEr_I_hArDLy_kNoW_hEr}-
+
+
+## FLAG
+
+'utflag{SubStiTuTIoN_cIPhEr_I_hArDLy_kNoW_hEr}'
